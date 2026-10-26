@@ -12,7 +12,7 @@ const MAX_OUTPUT_CHARS_FOR_JUDGE = 4000
 const PERSONAL_DATA_ACTION = "personal_data"
 
 // Wording measured with eval.ts; spelling out what does not count reduced false flags.
-export const QUESTIONS = {
+const QUESTIONS = {
   exposes_secret: {
     type: "noul",
     instructions:
@@ -61,7 +61,7 @@ const parser = (async () => {
 })()
 
 type Part = { text: string; words: string[]; expandedVariables: string[]; inputFiles: string[] }
-export type Check = { effect: "deny"; reason: string } | { effect: "allowlisted" } | { effect: "judge" }
+type Check = { effect: "deny"; reason: string } | { effect: "allowlisted" } | { effect: "judge" }
 
 function unquote(node: Node): string {
   if (node.type === "raw_string" || node.type === "string") return node.text.slice(1, -1)
