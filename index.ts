@@ -2,8 +2,8 @@ import { fileURLToPath } from "node:url"
 import { Language, Parser, type Node } from "web-tree-sitter"
 
 const OLLAMA = "http://127.0.0.1:11434"
-const MODEL = process.env.JEVRAILS_MODEL ?? "tev1:4b-q8_0"
-const THRESHOLD = Number(process.env.JEVRAILS_THRESHOLD ?? 0.6)
+const MODEL = process.env.OPENCODE_SECRET_CLASSIFIER_MODEL ?? "tev1:4b-q8_0"
+const THRESHOLD = Number(process.env.OPENCODE_SECRET_CLASSIFIER_THRESHOLD ?? 0.6)
 const JUDGE_TIMEOUT_MS = 8000
 const MAX_NESTED_SCRIPT_DEPTH = 3
 
@@ -174,7 +174,7 @@ type Context = {
 }
 
 export default {
-  id: "jevrails",
+  id: "opencode-secret-classifier",
   async setup(ctx: Context) {
     const allowPatterns = ctx.options.allow ?? []
     await ctx.permission.hook("evaluate", async (event) => {
@@ -182,8 +182,8 @@ export default {
       const commands = [...event.resources]
       const decide = (effect: "ask" | "deny", message: string) => {
         event.effect = effect
-        event.message = `jevrails: ${message}`
-        console.error(`jevrails: ${effect} ${JSON.stringify(commands)}: ${message}`)
+        event.message = `opencode-secret-classifier: ${message}`
+        console.error(`opencode-secret-classifier: ${effect} ${JSON.stringify(commands)}: ${message}`)
       }
 
       const checks = await Promise.all(commands.map((command) => check(command, allowPatterns)))

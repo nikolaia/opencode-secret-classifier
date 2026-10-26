@@ -1,4 +1,4 @@
-# Jevrails
+# opencode-secret-classifier
 
 A local classifier for OpenCode that denies any shell command that would print a secret value into the agent's context or the terminal. An OpenCode plugin checks a built-in list, then asks a Jev-style decision model on this machine via Ollama `/v1/systemone`. Not a chat model, not a server.
 
@@ -47,7 +47,7 @@ A compound command is denied if any part matches. A command the splitter cannot 
 Commands the user trusts to skip the model, set in the plugin's options (see OpenCode below):
 
 ```jsonc
-"plugins": [{ "package": "/absolute/path/to/jevrails", "options": { "allow": ["sops -e *", "sops exec-env *"] } }]
+"plugins": [{ "package": "/absolute/path/to/opencode-secret-classifier", "options": { "allow": ["sops -e *", "sops exec-env *"] } }]
 ```
 
 Patterns are matched against each part of a compound command, with `*` matching the rest of the part. The allowlist skips the model only; the static list still wins, so `"sops -d *"` changes nothing. Overriding the static list means changing the code, not the config. OpenCode `allow` rules do not skip the plugin: the evaluate hook runs for them too.
@@ -58,7 +58,7 @@ Patterns are matched against each part of a compound command, with `*` matching 
 
 The URL is fixed to loopback. It is not configurable, and `OLLAMA_HOST` is ignored.
 
-Default model: `tev1:4b-q8_0`, the GGUF build. Plain `tev1` is an MLX build and fails on an Ollama without the MLX runtime, such as the nix package. Override with `JEVRAILS_MODEL`. Threshold override: `JEVRAILS_THRESHOLD`.
+Default model: `tev1:4b-q8_0`, the GGUF build. Plain `tev1` is an MLX build and fails on an Ollama without the MLX runtime, such as the nix package. Override with `OPENCODE_SECRET_CLASSIFIER_MODEL`. Threshold override: `OPENCODE_SECRET_CLASSIFIER_THRESHOLD`.
 
 Ollama cloud models answer on the same local API but run on ollama.com. Before the first decision, the plugin checks the model in `GET /api/tags` and refuses one that Ollama marks as remote; every decision then asks, with a message that says why. Confirm the field Ollama uses for this before building on it.
 
@@ -86,7 +86,7 @@ Commands come from `event.resources`. The plugin sets `event.effect` and `event.
 - With `"sops -e *"` allowlisted, `sops -e -i secrets.yaml` runs and Ollama is not called; an allowlisted `"sops -d *"` is still denied.
 - `sops exec-env secrets.yaml 'npm test'` runs; `sops exec-env secrets.yaml 'printenv'` is denied.
 - Ollama not running asks, with a message that says the judge was unavailable.
-- A cloud model in `JEVRAILS_MODEL` is refused, and nothing is sent to it.
+- A cloud model in `OPENCODE_SECRET_CLASSIFIER_MODEL` is refused, and nothing is sent to it.
 - A deny message reaches the agent in a real OpenCode session.
 
 ## Later

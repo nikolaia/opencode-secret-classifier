@@ -1,12 +1,14 @@
-# Jevrails
+# opencode-secret-classifier
 
 > [!WARNING]
 > **Idea / draft. Not a security tool you should rely on.**
 > This is an early proof of concept, written and tested in one sitting on one Mac. The rules are a short hand-written list, the model thresholds come from 44 hand-labelled commands, and it has only been run in a handful of real OpenCode sessions. It will miss secrets and it will deny harmless commands. The design, the API, and the defaults can all change. Use it to experiment, not to protect anything that matters.
 
-An OpenCode plugin that denies shell commands that would print a secret value (an API key, a token, a private key, a decrypted secrets file) into the agent's context. It checks a built-in list first, then asks a small decision model running locally in Ollama. Nothing leaves your machine: the only network call is to `127.0.0.1:11434`.
+**Keeps secrets out of your coding agent's context, judged entirely on your machine.**
 
-It only ever denies or asks. It never approves a command that OpenCode would otherwise ask about. See [SPEC.md](SPEC.md) for the full design.
+An OpenCode plugin that classifies every shell command the agent is about to run and denies the ones that would print a secret value (an API key, a token, a private key, a decrypted secrets file). It checks a built-in list first, then asks a small decision model running locally in Ollama. Your commands are never sent to a hosted service for judging: the only network call is to `127.0.0.1:11434`, and Ollama cloud models are refused.
+
+It is a small, local take on the idea behind Claude Code's auto mode classifier. It only ever denies or asks. It never approves a command that OpenCode would otherwise ask about. See [SPEC.md](SPEC.md) for the full design.
 
 ## Requirements
 
@@ -36,7 +38,7 @@ Then add the plugin to the `plugins` array in an OpenCode config file. To use it
   "$schema": "https://opencode.ai/config.json",
   "plugins": [
     {
-      "package": "/absolute/path/to/jevrails",
+      "package": "/absolute/path/to/opencode-secret-classifier",
       "options": { "allow": ["sops -e *", "sops exec-env *"] }
     }
   ]
@@ -57,8 +59,8 @@ The built-in list always wins over the allowlist, so allowing `sops -d *` change
 
 | Environment variable | Default | Meaning |
 |---|---|---|
-| `JEVRAILS_MODEL` | `tev1:4b-q8_0` | Ollama model used as the judge. A cloud model is refused. |
-| `JEVRAILS_THRESHOLD` | `0.6` | `exposes_secret` score at or above which the model denies. |
+| `OPENCODE_SECRET_CLASSIFIER_MODEL` | `tev1:4b-q8_0` | Ollama model used as the judge. A cloud model is refused. |
+| `OPENCODE_SECRET_CLASSIFIER_THRESHOLD` | `0.6` | `exposes_secret` score at or above which the model denies. |
 
 ## What happens to a shell command
 
@@ -71,7 +73,7 @@ The built-in list always wins over the allowlist, so allowing `sops -d *` change
 A denial reaches the agent as a tool error, for example:
 
 ```
-jevrails: denied because the command names the credential file .env, which would print a secret value into the context.
+opencode-secret-classifier: denied because the command names the credential file .env, which would print a secret value into the context.
 ```
 
 ## Test
